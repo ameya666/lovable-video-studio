@@ -7,33 +7,29 @@ import HowItWorks from "@/components/HowItWorks";
 import VideoGallery from "@/components/VideoGallery";
 import PracticeTests from "@/components/PracticeTests";
 import { motion } from "framer-motion";
-
-const mockSolve = (): Promise<{ equation: string; steps: string[]; solution: string }> =>
-  new Promise((resolve) =>
-    setTimeout(() => resolve({
-      equation: "2x + 5 = 15",
-      steps: [
-        "Step 1: Start with 2x + 5 = 15",
-        "Step 2: Subtract 5 from both sides → 2x = 10",
-        "Step 3: Divide both sides by 2 → x = 5",
-      ],
-      solution: "x = 5",
-    }), 2000)
-  );
+import { solveEquation, SolveResult } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 type Tab = "solve" | "videos" | "practice";
 
 const Index = () => {
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{ equation: string; steps: string[]; solution: string } | null>(null);
+  const [result, setResult] = useState<SolveResult | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("solve");
+  const { toast } = useToast();
 
-  const handleSolve = async (_file: File) => {
+  const handleSolve = async (file: File) => {
     setLoading(true);
     setResult(null);
     try {
-      const data = await mockSolve();
+      const data = await solveEquation(file);
       setResult(data);
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || "Failed to solve equation",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
